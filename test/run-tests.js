@@ -7,7 +7,19 @@ var fs = require("fs")
   , requestedTest = null
   , files
   , moment = require('moment')
+  , ibmdb = require("../")
+  , cn = common.connectionString;
   ;
+
+if (typeof process.env.IBM_DB_SCHEMA !== 'undefined') {
+    var IBM_DB_SCHEMA = "IBM_DB_TEST";
+}
+
+ibmdb.open(cn, function(err, conn) {
+  if(err) return console.log(err);
+  conn.querySync("SET SCHEMA "IBM_DB_SCHEMA);
+  conn.close(function () { console.log('done'); });
+  });
 
 var filesDisabled = fs.readdirSync("./disabled");
 
