@@ -40,7 +40,7 @@ var download_file_httpget = function(file_url) {
             readStream
               .pipe(unzip.Parse())
               .pipe(writeStream).on("unpipe", function () {
-                fs.unlinkSync(BUILD_FILE);
+                //fs.unlinkSync(BUILD_FILE);
                 var ODBC_BINDINGS = path.resolve(CURRENT_DIR, 
                               'build\\Release\\odbc_bindings.node');
                 var ODBC_BINDINGS_V10 = path.resolve(CURRENT_DIR,
@@ -183,16 +183,17 @@ var download_file_httpget = function(file_url) {
         INSTALLER_FILE = path.resolve(DOWNLOAD_DIR, file_name);
         
         console.log('Downloading DB2 ODBC CLI Driver from ' +
-                    installerfileURL+'...');
+                    installerfileURL+'...');	
 
         fs.stat(installerfileURL, function (err, stats) {
             if (err) {
                 buildHttpOptions(installerfileURL);
             }
-            else if(stats.isFile()) 
+            else if(stats.isFile()) {
                 copyAndExtractDriver(fs.readFileSync(installerfileURL));
-            else
+            } else {
                 buildHttpOptions(installerfileURL);
+		}
         });
 
     }  // * END OF EXECUTION */
@@ -232,7 +233,7 @@ var download_file_httpget = function(file_url) {
     
     function copyAndExtractDriver(buf)
     {
-        var file = fs.openSync( INSTALLER_FILE, 'w');
+	var file = fs.openSync( INSTALLER_FILE, 'w');
         var len = fs.writeSync( file, buf, 0, buf.length, 0 );
         if( len != buf.length ) 
         {
@@ -243,8 +244,7 @@ var download_file_httpget = function(file_url) {
         if(platform == 'win32') 
         {
             readStream = fs.createReadStream(INSTALLER_FILE);
-            writeStream = fstream.Writer(DOWNLOAD_DIR);
-
+            writeStream = fstream.Writer(DOWNLOAD_DIR); 
             readStream.pipe(unzip.Parse()).pipe(writeStream);
             console.log('Download and extraction of DB2 ODBC ' +
                         'CLI Driver completed successfully ...');
@@ -252,7 +252,7 @@ var download_file_httpget = function(file_url) {
         } 
         else 
         {
-            var targz = require('targz');
+	    var targz = require('targz');
             var compress = targz.decompress({src: INSTALLER_FILE, dest:  DOWNLOAD_DIR}, function(err){
                 if(err) {
                     console.log(err);
@@ -313,25 +313,25 @@ var download_file_httpget = function(file_url) {
         {
             if (exists) 
             {
-                fs.unlinkSync(WIN_BUILD_FILE);
-            }
-        });
+             fs.unlinkSync(WIN_BUILD_FILE);
+	     }
+        }); 
+	
     }
     
     function buildHttpOptions(installerfileURL) 
     {
-        var options = {
+	var options = {
              host: url.parse(installerfileURL).host,
              port: 80,
              path: url.parse(installerfileURL).pathname
-            };
+            }; 
         var proxyStr;
-        
-        var child = exec('npm config get proxy', function(error, stdout, stderr)
-          {
-            if (error !== null) 
-            {
-                console.log('Error occurred while fetching proxy ' +
+	var child = exec('npm config get proxy', function(error, stdout, stderr)
+  	{
+		if (error !== null)
+	    {
+		console.log('Error occurred while fetching proxy ' +
                             'property from npm configuration -->\n' + error);
                 return http.get(options, downloadCLIDriver); 
             }
@@ -339,22 +339,22 @@ var download_file_httpget = function(file_url) {
             proxyStr = stdout.toString().split('\n')[0];
             if(proxyStr === 'null') 
             {
-                //console.log('Null Returned');
-                child = exec('npm config get https-proxy', 
-                  function(error, stdout, stderr) 
-                  {
+		//console.log('Null Returned');
+                child = exec('npm config get https-proxy',
+        	  function(error, stdout, stderr) 
+                  { 
                     //console.log('stderr: ' + stderr);
                     if (error !== null) 
                     {
                         console.log('Error occurred while fetching https-proxy'+
                             ' property from npm configuration -->\n' + error);
-                        return http.get(options, downloadCLIDriver); 
+                        return http.get(options, downloadCLIDriver);
                     }
                     
                     proxyStr = stdout.toString().split('\n')[0];
                     if(proxyStr !== 'null') 
                     {
-                        var splitIndex = proxyStr.toString().lastIndexOf(':');
+			var splitIndex = proxyStr.toString().lastIndexOf(':');
                         if(splitIndex > 0) 
                         {
                             var proxyUrl = url.parse(proxyStr.toString());
@@ -370,11 +370,11 @@ var download_file_httpget = function(file_url) {
                             }
                         }
                     }
-                    return http.get(options, downloadCLIDriver); 
+		    return http.get(options, downloadCLIDriver);
                 });
             } else 
             {
-                var splitIndex = proxyStr.toString().lastIndexOf(':');
+               var splitIndex = proxyStr.toString().lastIndexOf(':');
                 if(splitIndex > 0) {
                     var proxyUrl = url.parse(proxyStr.toString());
                     options = {
@@ -387,7 +387,7 @@ var download_file_httpget = function(file_url) {
                        options.headers = { 'Proxy-Authorization': 'Basic '
                            + new Buffer(proxyUrl.auth).toString('base64') };
                     }
-                }
+                } 
                 return http.get(options, downloadCLIDriver); 
             }
         });
